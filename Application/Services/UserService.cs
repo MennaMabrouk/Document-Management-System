@@ -1,0 +1,102 @@
+﻿using Application.Dto;
+using Application.Interfaces;
+using AutoMapper;
+using Domain.Interfaces;
+using Domain.Models;
+using Microsoft.AspNetCore.Identity;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Application.Services
+{
+    public class UserService :BaseService, IUserService
+    {
+        public UserService(IUnitOfWork unitOfWork, IMapper mapper, IFileService fileService)
+            : base(unitOfWork, mapper, fileService)
+        {
+        }
+
+        public async Task<ICollection<UserDto>> GetAllUsers()
+        {
+           var users =  await _unitOfWork.User.GetAll();
+
+            if (!users.Any())
+                return new List<UserDto>();
+
+            return  _mapper.Map<ICollection<UserDto>>(users); 
+        }
+
+        public async Task<UserDto> GetUserById(int userClaims,int userId,string roleClaims)
+        {
+
+            if (userId <= 0)
+                throw new ArgumentException("Invalid user ID", nameof(userId));
+
+            if(userClaims <=0)
+                throw new ArgumentException("Invalid user claims ID.", nameof(userClaims));
+
+            //Admin can access anyway
+            if (userClaims != userId && roleClaims == "User")
+                throw new UnauthorizedAccessException("You are not authorized to access this user's information.");
+
+
+            var user = await _unitOfWork.User.GetById(userId);
+            if (user == null)
+                throw new KeyNotFoundException("User with the provided ID was not found.");
+
+            return _mapper.Map<UserDto>(user);
+
+        }
+
+
+        public async Task<bool> UpdateUser(int userClaims,UserDto userDto)
+        {
+            if (userDto == null)
+                throw new ArgumentNullException(nameof(userDto), "User data cannot be null.");
+
+            if (userClaims <=0)
+                throw new ArgumentException("Invalid user claims ID.", nameof(userClaims));
+
+            if(userDto.Id != userClaims)
+                throw new UnauthorizedAccessException("You are not authorized to access this user's information.");
+
+            var user = await _unitOfWork.User.GetById(userDto.Id);
+            if (user == null)
+                throw new KeyNotFoundException("User with the provided ID was not found.");
+
+
+            _mapper.Map(userDto, user);
+            _unitOfWork.User.Update(user);
+            var result = _unitOfWork.Save();
+            return result > 0;
+
+        }
+
+        public async Task<bool> CreateWorkspacePathForUser(string workspaceName)
+        {
+            return await _fileService.CreateWorkspacePath(workspaceName);
+
+        }
+
+        public async Task<UserDto> GetUserByWorkspaceId(int workspaceId)
+        {
+            if (workspaceId > 0)
+            {
+                var user = await _unitOfWork.User.GetUserByWorkspaceId(workspaceId);
+                if (user != null)
+                {
+                    return _mapper.Map<UserDto>(user);
+                }
+            }
+
+            return null;
+        }
+
+
+
+
+    }
+}
