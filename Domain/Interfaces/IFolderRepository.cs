@@ -11,7 +11,8 @@ namespace Domain.Interfaces
     {
         Task<ICollection<Folder>> GetAllFoldersByWorkspaceId(int workspaceId);
         Task<Folder> GetFolderIncludingWorkspaceById(int folderId);
-        Task<ICollection<Folder>> GetAllPublicFolders(int userClaims);
+        Task<ICollection<Folder>> GetAllFoldersByUserId(int userId);
+        Task<ICollection<Folder>> GetAllPublicFolders();
 
         Task<bool> RestoreAllSoftDeletedFoldersByWorkspaceId(int workspaceId);
 

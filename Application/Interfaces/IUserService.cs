@@ -1,4 +1,4 @@
-﻿using Application.Dto;
+﻿using Application.Dto.User;
 using Microsoft.AspNetCore.Identity;
 using System;
 using System.Collections.Generic;

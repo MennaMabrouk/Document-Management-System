@@ -9,7 +9,7 @@ namespace Domain.Models
         [Key]
         public int DocumentId { get; set; }
 
-        [Required]
+   
         [MaxLength(50)]
         public string Name { get; set; } = string.Empty;
         public DateTime CreationDate { get; set; }
@@ -26,8 +26,6 @@ namespace Domain.Models
 
         [MaxLength(100)]
         public string Tag { get; set; } = string.Empty;
-        [MaxLength(20)]
-        public string AccessControl { get; set; } = "Private";
 
         public int FolderId { get; set; }
         public Folder Folder { get; set; } 

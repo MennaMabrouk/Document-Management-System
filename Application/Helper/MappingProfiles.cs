@@ -5,6 +5,8 @@ using System.Reflection.Metadata;
 using System.Text;
 using System.Threading.Tasks;
 using Application.Dto;
+using Application.Dto.Document;
+using Application.Dto.User;
 using AutoMapper;
 using Domain.Models;
 
@@ -27,6 +29,8 @@ namespace Application.Helper
 
             CreateMap<Domain.Models.Document, DocumentDto>();
             CreateMap<DocumentDto, Domain.Models.Document>();
+
+
         }
 
 

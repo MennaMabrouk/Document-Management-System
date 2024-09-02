@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Application.Dto
+namespace Application.Dto.User
 {
     public class RegisterUserDto
     {
@@ -36,6 +36,6 @@ namespace Application.Dto
         public string PhoneNumber { get; set; }
         [Range(1900, 2100)]
         public int YearOfBirth { get; set; }
-       
+
     }
 }

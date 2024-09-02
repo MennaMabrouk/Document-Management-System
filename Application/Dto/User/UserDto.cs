@@ -7,7 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Domain.Models;
 
-namespace Application.Dto
+namespace Application.Dto.User
 {
     public class UserDto
     {
@@ -27,7 +27,7 @@ namespace Application.Dto
         [StringLength(14, MinimumLength = 14)]
         [RegularExpression(@"^\d{14}$", ErrorMessage = "National ID must be exactly 14 digits.")]
         public string Nid { get; set; } = string.Empty;
-      
+
         [MaxLength(6)]
         public string Gender { get; set; } = string.Empty;
 

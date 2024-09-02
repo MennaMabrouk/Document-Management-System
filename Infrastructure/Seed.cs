@@ -98,7 +98,6 @@ namespace Infrastructure
                         Type = "txt",
                         Version = "1.0",
                         Tag = "General",
-                        AccessControl = "User",
                         FolderId = folder.FolderId
                     };
                     _dataContext.Documents.Add(document);

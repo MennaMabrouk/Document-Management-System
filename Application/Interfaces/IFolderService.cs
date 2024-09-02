@@ -19,7 +19,8 @@ namespace Application.Interfaces
 
 
         Task<ICollection<FolderDto>> GetAllFoldersByWorkspaceId(int userClaims, int workspaceId, string roleClaims);
-        Task<ICollection<FolderDto>> GetAllPublicFolders(int userClaims);
+        Task<ICollection<FolderDto>> GetAllFoldersByUserId(int userClaims, int userId, string roleClaims);
+        Task<ICollection<FolderDto>> GetAllPublicFolders();
         Task<bool> RestoreAllSoftDeletedFoldersByWorkspaceId(int workspaceId);
 
         Task<bool> RestoreSoftDeletedFolderById(int folderId);

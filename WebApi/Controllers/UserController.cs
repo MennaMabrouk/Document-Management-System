@@ -1,4 +1,4 @@
-﻿using Application.Dto;
+﻿using Application.Dto.User;
 using Application.Interfaces;
 using Domain.Interfaces;
 using Domain.Models;

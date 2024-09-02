@@ -19,6 +19,7 @@ namespace Application.Dto
         public string Name { get; set; } = string.Empty;
         public DateTime CreationDate { get; set; }
         public bool IsPublic { get; set; } = false;
+        public int WorkspaceId {  get; set; }
 
     }
 }

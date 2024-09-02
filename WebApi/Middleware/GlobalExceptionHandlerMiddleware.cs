@@ -76,6 +76,15 @@ namespace WebApi.Middleware
                     Message = exception.Message 
                 }.ToString());
             }
+            else if (exception is FileNotFoundException fileNotFoundException)
+            {
+                context.Response.StatusCode = StatusCodes.Status404NotFound;
+                return context.Response.WriteAsync(new ErrorDetails
+                {
+                    StatusCode = context.Response.StatusCode,
+                    Message = exception.Message
+                }.ToString());
+            }
             else
             {
                 context.Response.StatusCode = StatusCodes.Status500InternalServerError;

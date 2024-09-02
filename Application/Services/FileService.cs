@@ -1,139 +1,159 @@
-﻿using Application.Interfaces;
+﻿using Application.Dto;
+using Application.Interfaces;
 using Microsoft.AspNetCore.Hosting;
-using System.IO;
-using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging;
 
-namespace Application.Services
+public class FileService : IFileService
 {
-    public class FileService : IFileService
+    private readonly IWebHostEnvironment _environment;
+    private readonly ILogger<FileService> _logger;
+
+    public FileService(IWebHostEnvironment environment, ILogger<FileService> logger)
     {
-        private readonly IWebHostEnvironment _environment;
+        _environment = environment;
+        _logger = logger;
+    }
 
-        public FileService(IWebHostEnvironment environment)
+    public async Task<bool> CreateWorkspacePath(string workspaceName)
+    {
+        string workspacePath = GetAbsolutePath("Workspaces",workspaceName);
+        return await CreateDirectoryAsync(workspacePath);
+    }
+
+    public async Task<bool> UpdateWorkspacePath(string oldWorkspaceName, string newWorkspaceName)
+    {
+        string oldFolderPath = GetAbsolutePath("Workspaces",oldWorkspaceName);
+        string newFolderPath = GetAbsolutePath("Workspaces",newWorkspaceName);
+        return await MoveDirectoryAsync(oldFolderPath, newFolderPath);
+    }
+
+    public async Task<bool> CreateFolderPath(string workspaceName, string folderName)
+    {
+        string folderPath = GetAbsolutePath("Workspaces", workspaceName, folderName);
+        return await CreateDirectoryAsync(folderPath);
+    }
+
+    public async Task<bool> UpdateFolderPath(string workspaceName, string oldFolderName, string newFolderName)
+    {
+        string oldFolderPath = GetAbsolutePath("Workspaces",workspaceName, oldFolderName);
+        string newFolderPath = GetAbsolutePath("Workspaces", workspaceName, newFolderName);
+        return await MoveDirectoryAsync(oldFolderPath, newFolderPath);
+    }
+
+
+    private async Task<bool> CreateDirectoryAsync(string path)
+    {
+        return await Task.Run(() =>
         {
-            _environment = environment;
-        }
-
-        public async Task<bool> CreateWorkspacePath(string workspaceName)
-        {
-            string folderPath = GetWorkspacePath(workspaceName);
-            return await CreateDirectoryAsync(folderPath);
-        }
-
-        public async Task<bool> UpdateWorkspacePath(string oldWorkspaceName, string newWorkspaceName)
-        {
-            string oldFolderPath = GetWorkspacePath(oldWorkspaceName);
-            string newFolderPath = GetWorkspacePath(newWorkspaceName);
-            return await MoveDirectoryAsync(oldFolderPath, newFolderPath);
-        }
-
-        public async Task<bool> CreateFolderPath(string workspaceName, string folderName)
-        {
-            string folderPath = GetFolderPath(workspaceName, folderName);
-            return await CreateDirectoryAsync(folderPath);
-        }
-
-        public async Task<bool> UpdateFolderPath(string workspaceName, string oldFolderName, string newFolderName)
-        {
-            string oldFolderPath = GetFolderPath(workspaceName, oldFolderName);
-            string newFolderPath = GetFolderPath(workspaceName, newFolderName);
-            return await MoveDirectoryAsync(oldFolderPath, newFolderPath);
-        }
-
-        public async Task<bool> CreateDocument(string workspaceName, string folderName, string documentName, byte[] content)
-        {
-            string documentPath = GetDocumentPath(workspaceName, folderName, documentName);
-
-            return await Task.Run(() =>
+            if (!Directory.Exists(path))
             {
-                try
-                {
-                    if (!File.Exists(documentPath))
-                    {
-                        File.WriteAllBytes(documentPath, content);
-                    }
-                    return File.Exists(documentPath);
-                }
-                catch (Exception)
-                {
-                    return false;
-                }
-            });
-        }
+                Directory.CreateDirectory(path);
+            }
+            return Directory.Exists(path);
+        });
+    }
 
-        public async Task<bool> UpdateDocument(string workspaceName, string folderName, string documentName, byte[] newContent)
+    private async Task<bool> MoveDirectoryAsync(string oldPath, string newPath)
+    {
+        return await Task.Run(() =>
         {
-            string documentPath = GetDocumentPath(workspaceName, folderName, documentName);
-
-            return await Task.Run(() =>
+            if (Directory.Exists(oldPath))
             {
-                try
-                {
-                    if (File.Exists(documentPath))
-                    {
-                        File.WriteAllBytes(documentPath, newContent);
-                        return true;
-                    }
-                    return false;
-                }
-                catch (Exception)
-                {
-                    return false;
-                }
-            });
+                Directory.Move(oldPath, newPath);
+            }
+            return Directory.Exists(newPath);
+        });
+    }
+
+    public string ExtractFileName(IFormFile file, string documentName)
+    {
+        return string.IsNullOrEmpty(documentName)
+                ? Path.GetFileNameWithoutExtension(file.FileName)
+                : documentName;
+    }
+
+    public string ExtractFileType(IFormFile file)
+    {
+        var fileType =  Path.GetExtension(file.FileName);
+        if(!fileType.StartsWith("."))
+        {
+            fileType = $".{fileType}";
         }
 
-        public string GetWorkspacePath(string workspaceName)
+        return fileType;    
+    }
+
+    public string ExtractFileTag(IFormFile file)
+    {
+        string fileNameWithoutExtension = Path.GetFileNameWithoutExtension(file.FileName);
+
+        // Example: Extract the part of the name after the first underscore
+        var parts = fileNameWithoutExtension.Split('_');
+
+        // Assuming the second part is the tag
+        return parts.Length > 1 ? parts[1] : "General";
+    }
+
+    public string ExtractFileVersion(IFormFile file)
+    {
+        string fileNameWithoutExtension = Path.GetFileNameWithoutExtension(file.FileName);
+
+        // Assuming the version is after the last underscore (e.g., "document_v2.0")
+        var parts = fileNameWithoutExtension.Split('_');
+        var versionPart = parts.LastOrDefault();
+
+        // Check if the last part starts with 'v' and is followed by numbers
+        if (!string.IsNullOrEmpty(versionPart) && versionPart.StartsWith("v"))
         {
-            return Path.Combine(_environment.WebRootPath, "Workspaces", workspaceName);
+            return versionPart.Substring(1); // Return the version part without the 'v'
         }
 
-        public string GetFolderPath(string workspaceName, string folderName)
-        {
-            return Path.Combine(GetWorkspacePath(workspaceName), folderName);
-        }
+        return "1.0"; // Default version if not found
+    }
 
-        public string GetDocumentPath(string workspaceName, string folderName, string documentName)
-        {
-            return Path.Combine(GetFolderPath(workspaceName, folderName), documentName);
-        }
 
-        private async Task<bool> CreateDirectoryAsync(string path)
+    public string GetAbsolutePath(params string[] paths)
+    {
+        return Path.Combine(_environment.WebRootPath, Path.Combine(paths));
+    }
+
+    public string GetRelativePath(string absolutePath)
+    {
+        return absolutePath.Replace(_environment.WebRootPath, "").TrimStart(Path.DirectorySeparatorChar);
+    }
+
+    public async Task<bool> CreateDocument(string workspaceName, string folderName, string documentName, byte[] content)
+    {
+        string documentPath = GetAbsolutePath("Workspaces", workspaceName, folderName, documentName);
+        if (!File.Exists(documentPath))
         {
-            return await Task.Run(() =>
+            await File.WriteAllBytesAsync(documentPath, content);
+        }
+        return File.Exists(documentPath);
+    }
+
+    public async Task<bool> RenameDocument(string currentFilePath, string newFilePath)
+    {
+
+            if (!File.Exists(currentFilePath))
             {
-                try
-                {
-                    if (!Directory.Exists(path))
-                    {
-                        Directory.CreateDirectory(path);
-                    }
-                    return Directory.Exists(path);
-                }
-                catch (Exception)
-                {
-                    return false;
-                }
-            });
-        }
+                throw new FileNotFoundException("The file to be renamed does not exist.");
+            }
+            File.Move(currentFilePath, newFilePath);
+            return await Task.FromResult(File.Exists(newFilePath));
 
-        private async Task<bool> MoveDirectoryAsync(string oldPath, string newPath)
+        
+    }
+
+    public async Task<byte[]> ReadDocumentAsBytes(string documentPath)
+    {
+ 
+        if (!File.Exists(documentPath))
         {
-            return await Task.Run(() =>
-            {
-                try
-                {
-                    if (Directory.Exists(oldPath))
-                    {
-                        Directory.Move(oldPath, newPath);
-                    }
-                    return Directory.Exists(newPath);
-                }
-                catch (Exception)
-                {
-                    return false;
-                }
-            });
+            throw new FileNotFoundException("The document does not exist at the specified path.");
         }
+        return await File.ReadAllBytesAsync(documentPath);
     }
 }
+

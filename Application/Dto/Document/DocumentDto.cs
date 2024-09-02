@@ -8,13 +8,12 @@ using System.Text;
 using System.Threading.Tasks;
 using Domain.Models;
 
-namespace Application.Dto
+namespace Application.Dto.Document
 {
     public class DocumentDto
     {
         public int DocumentId { get; set; }
 
-        [Required]
         [MaxLength(50)]
         public string Name { get; set; } = string.Empty;
         public DateTime CreationDate { get; set; }
@@ -30,8 +29,6 @@ namespace Application.Dto
 
         [MaxLength(100)]
         public string Tag { get; set; } = string.Empty;
-        [MaxLength(20)]
-        public string AccessControl { get; set; } = "Private";
 
         public int FolderId { get; set; }
 

@@ -18,14 +18,14 @@ namespace WebApi.Controllers
             _folderService = folderService;
         }
 
-        [Authorize(Roles = "User")]
+        [Authorize(Roles = "User,Admin")]
         [HttpGet("PublicFolders")]
         [ProducesResponseType(200, Type = typeof(ICollection<FolderDto>))]
         [ProducesResponseType(204)]
         public async Task<IActionResult> GetAllPublicFolders()
         {
             var userIdClaims = GetUserIdFromClaims();
-            var publicFolders = await _folderService.GetAllPublicFolders(userIdClaims);
+            var publicFolders = await _folderService.GetAllPublicFolders();
             if (!publicFolders.Any())
                 return NoContent();
 
@@ -54,6 +54,23 @@ namespace WebApi.Controllers
             var userIdClaims = GetUserIdFromClaims();
             var roles = GetRoleFromClaims();
             var Folders = await _folderService.GetAllFoldersByWorkspaceId(userIdClaims, workspaceId, roles);
+            if (!Folders.Any())
+                return NoContent();
+
+
+            return Ok(Folders);
+        }
+
+        [Authorize(Roles = "User,Admin")]
+        [HttpGet("User/{userId}/Folders")]
+        [ProducesResponseType(200, Type = typeof(ICollection<FolderDto>))]
+        [ProducesResponseType(204)]
+        public async Task<IActionResult> GetAllFoldersByUserId(int userId)
+        {
+
+            var userIdClaims = GetUserIdFromClaims();
+            var roles = GetRoleFromClaims();
+            var Folders = await _folderService.GetAllFoldersByWorkspaceId(userIdClaims, userId, roles);
             if (!Folders.Any())
                 return NoContent();
 

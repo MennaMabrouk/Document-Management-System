@@ -10,22 +10,28 @@ using System.Threading.Tasks;
 
 namespace Infrastructure.Repositories
 {
-    public class FolderRepository : GenericRepository<Folder> , IFolderRepository
+    public class FolderRepository : GenericRepository<Folder>, IFolderRepository
     {
-        public FolderRepository (DataContext context) : base(context)
+        public FolderRepository(DataContext context) : base(context)
         {
 
+        }
+
+        public async Task<ICollection<Folder>> GetAllFoldersByUserId(int userId)
+        {
+            return await _context.Folders.Include(f => f.Workspace).Where(f => f.Workspace.UserId == userId && !f.IsDeleted).ToListAsync();
         }
 
         public async Task<ICollection<Folder>> GetAllFoldersByWorkspaceId(int workspaceId)
         {
 
-            return await _context.Folders.Where(f=> f.WorkspaceId == workspaceId && !f.IsDeleted).ToListAsync();    
+            return await _context.Folders.Where(f => f.WorkspaceId == workspaceId && !f.IsDeleted).ToListAsync();
         }
 
-        public async Task<ICollection<Folder>> GetAllPublicFolders(int userClaims)
+        public async Task<ICollection<Folder>> GetAllPublicFolders()
         {
-            return await _context.Folders.Include(f=> f.Workspace).Where(f => f.IsPublic && !f.IsDeleted && f.Workspace.UserId !=userClaims).ToListAsync();
+            return await _context.Folders.Where(f => f.IsPublic && !f.IsDeleted).ToListAsync();
+
         }
 
         public async Task<Folder> GetFolderIncludingWorkspaceById(int folderId)
@@ -51,13 +57,16 @@ namespace Infrastructure.Repositories
 
         public async Task<bool> RestoreSoftDeletedFolderById(int folderId)
         {
-           var softDeletedFolder = await _context.Folders.Where(f => f.FolderId == folderId && f.IsDeleted).FirstOrDefaultAsync();
-            if(softDeletedFolder != null)
+            var softDeletedFolder = await _context.Folders.Where(f => f.FolderId == folderId && f.IsDeleted).FirstOrDefaultAsync();
+            if (softDeletedFolder != null)
             {
                 softDeletedFolder.IsDeleted = false;
                 return true;
             }
             return false;
         }
+
     }
 }
+
+    

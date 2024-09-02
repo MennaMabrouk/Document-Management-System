@@ -82,6 +82,36 @@ namespace Application.Services
         }
 
 
+        public async Task<ICollection<FolderDto>> GetAllFoldersByUserId(int userClaims, int userId, string roleClaims)
+        {
+            if (userId <= 0)
+                throw new ArgumentException("Invalid user ID", nameof(userId));
+
+            if (userClaims <= 0)
+                throw new ArgumentException("Invalid user claims ID.", nameof(userClaims));
+
+            //Admin can access anyway
+            if (userClaims != userId && roleClaims == "User")
+                throw new UnauthorizedAccessException("You are not authorized to access this folder's information.");
+
+            var folders = await _unitOfWork.Folder.GetAllFoldersByUserId(userId);
+            if (!folders.Any())
+                return new List<FolderDto>();
+
+            return _mapper.Map<ICollection<FolderDto>>(folders);
+        }
+
+
+        public async Task<ICollection<FolderDto>> GetAllPublicFolders()
+        {
+
+            var publicFolders = await _unitOfWork.Folder.GetAllPublicFolders();
+            if (!publicFolders.Any())
+                return new List<FolderDto>();
+
+            return _mapper.Map<ICollection<FolderDto>>(publicFolders);
+        }
+
         public async Task<ICollection<FolderDto>> GetAllFoldersByWorkspaceId(int userClaims, int workspaceId, string roleClaims)
         {
             if (workspaceId <= 0)
@@ -103,20 +133,6 @@ namespace Application.Services
                 return new List<FolderDto>();
 
             return _mapper.Map<ICollection<FolderDto>>(folders);
-        }
-
-
-
-        public async Task<ICollection<FolderDto>> GetAllPublicFolders(int userClaims)
-        {
-            if (userClaims <= 0)
-                throw new ArgumentException("Invalid user claims ID.", nameof(userClaims));
-
-            var publicFolders = await _unitOfWork.Folder.GetAllPublicFolders(userClaims);
-            if (!publicFolders.Any())
-                return new List<FolderDto>();
-
-            return _mapper.Map<ICollection<FolderDto>>(publicFolders);
         }
 
         public async Task<FolderDto> GetFolderById(int userClaims, int folderId, string roleClaims)
@@ -204,6 +220,7 @@ namespace Application.Services
         {
             return await _unitOfWork.Folder.EntityExists(name);
         }
+
 
     }
 }

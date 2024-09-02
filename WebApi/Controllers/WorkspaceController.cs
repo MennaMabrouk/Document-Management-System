@@ -24,7 +24,7 @@ namespace WebApi.Controllers
         [HttpGet("{userId}")]
         [ProducesResponseType(200, Type = typeof(WorkspaceDto))]
 
-        public async Task<IActionResult> GetWorkspaceById(int userId)
+        public async Task<IActionResult> GetWorkspaceWithFoldersForUser(int userId)
         {
             var userIdClaims = GetUserIdFromClaims();
             var role = GetRoleFromClaims();
