@@ -169,15 +169,18 @@ namespace WebApi.Controllers
         [ProducesResponseType(204)]
         [ProducesResponseType(400)]
         [ProducesResponseType(404)]
-        public async Task<IActionResult> LockUser(int userId)
+        public async Task<IActionResult> LockUser(int userId, int? lockTime)
         {
             var user = await _usermanager.FindByIdAsync(userId.ToString());
             if (user == null)
             {
                 return NotFound("User not found");
             }
-
-            user.LockoutEnd = DateTimeOffset.UtcNow.AddHours(1);
+            if(!lockTime.HasValue)
+            {
+                user.LockoutEnd = DateTimeOffset.UtcNow.AddHours(1);
+            }
+            user.LockoutEnd = DateTimeOffset.UtcNow.AddHours((double)lockTime);
             user.LockoutEnabled = true;
 
             var result = await _usermanager.UpdateAsync(user);

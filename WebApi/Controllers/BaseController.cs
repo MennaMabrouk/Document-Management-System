@@ -8,6 +8,7 @@ namespace WebApi.Controllers
         protected int GetUserIdFromClaims()
         {
             string userToken = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
             if (int.TryParse(userToken, out int userIdInt))
             {
                 return userIdInt;

@@ -105,10 +105,7 @@ namespace Application.Services
 
             if (document.CreationDate != documentDto.CreationDate)
                 throw new InvalidOperationException("Creation date cannot be modified!");
-
-            if (document.FilePath != documentDto.FilePath)
-                throw new InvalidOperationException("File path cannot be modified!");
-
+/*
             if (document.Name != documentDto.Name)
             {
 
@@ -129,7 +126,7 @@ namespace Application.Services
                     throw new FileNotFoundException("The file to be renamed does not exist at the specified path.", currentFilePath);
                 }
 
-            }
+            }*/
 
             document.Name = documentDto.Name;
             document.Version = documentDto.Version;
@@ -191,9 +188,9 @@ namespace Application.Services
                 if (!success)
                     return false;
             }
-            var absolutePath = _fileService.GetAbsolutePath(folder.Workspace.Name, folder.Name, $"{fileName}{fileType}");
+/*            var absolutePath = _fileService.GetAbsolutePath(folder.Workspace.Name, folder.Name, $"{fileName}{fileType}");
             var relativeFilePath = _fileService.GetRelativePath(absolutePath);
-
+*/
             var documentDto = new DocumentDto
             {
                 Name = fileName,
@@ -202,7 +199,7 @@ namespace Application.Services
                 Tag = fileTag,
                 Version = fileVersion,
                 FolderId = documentCreateDto.FolderId,
-                FilePath = relativeFilePath
+              /*  FilePath = relativeFilePath*/
 
             };
 
@@ -232,9 +229,11 @@ namespace Application.Services
             if (document == null)
                 throw new UnauthorizedAccessException("Document not found");
 
-            var relativeFilePath = document.FilePath;
+/*            var relativeFilePath = document.FilePath;
             var abosluteFilePath = _fileService.GetAbsolutePath(relativeFilePath);
-            var content = await _fileService.ReadDocumentAsBytes(abosluteFilePath);
+*/
+            var filePath = _fileService.GetAbsolutePath("Workspaces", document.Folder.Workspace.Name, document.Folder.Name, $"{document.Name}{document.Type}");
+            var content = await _fileService.ReadDocumentAsBytes(filePath);
 
             var documentBlobDto = new DocumentBlobDto
             {
