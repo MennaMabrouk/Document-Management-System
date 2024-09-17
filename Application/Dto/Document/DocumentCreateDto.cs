@@ -13,7 +13,7 @@ namespace Application.Dto.Document
         [Required]
         public IFormFile File { get; set; }
         public int FolderId { get; set; }
-        public string Name { get; set; } = string.Empty;
+        public string? Name { get; set; }
 
     }
 }

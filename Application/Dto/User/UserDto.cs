@@ -28,16 +28,17 @@ namespace Application.Dto.User
         [RegularExpression(@"^\d{14}$", ErrorMessage = "National ID must be exactly 14 digits.")]
         public string Nid { get; set; } = string.Empty;
 
-        [MaxLength(6)]
-        public string Gender { get; set; } = string.Empty;
+/*        [MaxLength(6)]
+*/        public string Gender { get; set; } = string.Empty;
 
         [Phone]
-        [MaxLength(15)]
+/*        [MaxLength(15)]*/
         public string PhoneNumber { get; set; } = string.Empty;
 
-        [Range(1900, 2100)]
-        public int YearOfBirth { get; set; }
+        /*      [Range(1900, 2100)]
+              public int YearOfBirth { get; set; }
+      */
 
-
+        public string WorkspaceName { get; set; } = string.Empty;
     }
 }

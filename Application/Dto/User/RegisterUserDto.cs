@@ -23,7 +23,7 @@ namespace Application.Dto.User
         [Required]
         [StringLength(14, MinimumLength = 14)]
         [RegularExpression(@"^\d{14}$", ErrorMessage = "National ID must be exactly 14 digits.")]
-
+        
         public string Nid { get; set; }
 
         [MaxLength(6)]
@@ -33,9 +33,9 @@ namespace Application.Dto.User
         public string WorkspaceName { get; set; }
 
         [Phone]
-        public string PhoneNumber { get; set; }
-        [Range(1900, 2100)]
-        public int YearOfBirth { get; set; }
+        public string? PhoneNumber { get; set; }
+/*        [Range(1900, 2100)]
+        public int YearOfBirth { get; set; }*/
 
     }
 }

@@ -62,7 +62,7 @@ namespace WebApi.Controllers
         }
 
         [Authorize(Roles = "User,Admin")]
-        [HttpGet("User/{userId}/Folders")]
+        [HttpGet("workspace/{userId}/folders")]
         [ProducesResponseType(200, Type = typeof(ICollection<FolderDto>))]
         [ProducesResponseType(204)]
         public async Task<IActionResult> GetAllFoldersByUserId(int userId)

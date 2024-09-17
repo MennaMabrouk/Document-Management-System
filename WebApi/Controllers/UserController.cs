@@ -34,7 +34,7 @@ namespace WebApi.Controllers
         }
 
 
-        [HttpPost("Register")]
+        [HttpPost("register")]
 
         public async Task<IActionResult> Registeration(RegisterUserDto registerdto)
         {
@@ -53,7 +53,7 @@ namespace WebApi.Controllers
                     Nid = registerdto.Nid,
                     Gender = registerdto.Gender,
                     PhoneNumber = registerdto.PhoneNumber,
-                    YearOfBirth = registerdto.YearOfBirth,
+                  /*  YearOfBirth = registerdto.YearOfBirth,*/
 
                     Workspace = new Workspace
                     {
@@ -62,7 +62,6 @@ namespace WebApi.Controllers
                     }
 
                 };
-
 
 
 
@@ -92,10 +91,12 @@ namespace WebApi.Controllers
 
             }
 
-            return BadRequest(ModelState);
+            /*  return BadRequest(ModelState);*/
+            return BadRequest(new { Errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage) });
+
         }
 
-        [HttpPost("Login")]
+        [HttpPost("login")]
         public async Task<IActionResult> Login(LoginUserDto logindto)
         {
             if (ModelState.IsValid)
@@ -140,7 +141,7 @@ namespace WebApi.Controllers
                             issuer: _config["JWT:ValidIssuer"],
                             audience: _config["JWT:ValidAudience"],
                             claims: claims,
-                            expires: DateTime.Now.AddHours(1),
+                            expires: DateTime.Now.AddDays(2),
                             signingCredentials: signInCredentials
                             );
 
@@ -164,8 +165,36 @@ namespace WebApi.Controllers
 
         }
 
+
+
+/*        [Authorize(Roles = "User,Admin")]
+        [HttpGet("get-user-info")]
+        [ProducesResponseType(204)]
+        [ProducesResponseType(400)]
+        [ProducesResponseType(404)]
+        public async Task<IActionResult> GetLoggedUserInfo()
+        {
+            var userIdClaims = GetUserIdFromClaims();
+            var roleClaims = GetRoleFromClaims();
+            var userDetails = await _userService.GetUserById(userIdClaims, userIdClaims, roleClaims);
+
+            if (userDetails == null)
+            {
+                return NotFound("User not found.");
+            }
+
+            return Ok(new
+            {
+                User = userDetails,
+                Role = roleClaims
+            });
+
+        }*/
+
+
+
         [Authorize(Roles = "Admin")]
-        [HttpPost("LockUser/{userId}")]
+        [HttpPost("lock/{userId}")]
         [ProducesResponseType(204)]
         [ProducesResponseType(400)]
         [ProducesResponseType(404)]
@@ -193,7 +222,7 @@ namespace WebApi.Controllers
         }
 
         [Authorize(Roles = "Admin")]
-        [HttpPost("UnlockUser/{userId}")]
+        [HttpPost("unlock/{userId}")]
         [ProducesResponseType(204)]
         [ProducesResponseType(400)]
         [ProducesResponseType(404)]

@@ -40,7 +40,7 @@ namespace Infrastructure
                     EmailConfirmed = true,
                     Nid = "12345678901234",
                     Gender = "Male",
-                    YearOfBirth = 1980
+                /*    YearOfBirth = 1980*/
                 };
 
                 var result = await _userManager.CreateAsync(adminUser, "Admin123!");
@@ -61,7 +61,7 @@ namespace Infrastructure
                     EmailConfirmed = true,
                     Nid = "98765432109876",
                     Gender = "Female",
-                    YearOfBirth = 1995
+              /*      YearOfBirth = 1995*/
                 };
 
                 var result = await _userManager.CreateAsync(regularUser, "User123!");

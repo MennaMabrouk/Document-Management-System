@@ -47,7 +47,15 @@ namespace Application.Services
             if (user == null)
                 throw new KeyNotFoundException("User with the provided ID was not found.");
 
-            return _mapper.Map<UserDto>(user);
+             var workspace = await _unitOfWork.Workspace.GetWorkspaceByUserId(userClaims);
+            var userDto = _mapper.Map<UserDto>(user);
+            // Check if the workspace exists before assigning the name
+            if (workspace != null)
+            {
+                userDto.WorkspaceName = workspace.Name;
+            }
+
+            return userDto;
 
         }
 

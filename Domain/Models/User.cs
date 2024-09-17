@@ -14,7 +14,7 @@ namespace Domain.Models
         [MaxLength(6)]
         public string Gender { get; set; } = string.Empty;
 
-        [Range(1900,2100)]
+/*        [Range(1900,2100)]
         public int YearOfBirth { get; set; }
 
         [NotMapped]
@@ -27,7 +27,7 @@ namespace Domain.Models
                 var age = currentYear - YearOfBirth;
                 return age;
             }
-        }
+        }*/
 
         public Workspace Workspace { get; set; } 
 
