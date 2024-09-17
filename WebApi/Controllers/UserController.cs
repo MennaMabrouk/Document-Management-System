@@ -148,7 +148,8 @@ namespace WebApi.Controllers
                         return Ok(new
                         {
                             token = new JwtSecurityTokenHandler().WriteToken(mytoken),
-                            expiration = mytoken.ValidTo
+                            expiration = mytoken.ValidTo,
+                            role = roles.FirstOrDefault()
                         });
 
                     }
