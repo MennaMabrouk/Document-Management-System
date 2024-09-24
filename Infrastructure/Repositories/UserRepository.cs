@@ -17,6 +17,18 @@ namespace Infrastructure.Repositories
 
         }
 
+        public async Task<ICollection<User>> GetAllNonAdminUsers()
+        {
+            var nonAdminUsers = await (from user in _context.Users
+                                       join userRole in _context.UserRoles on user.Id equals userRole.UserId
+                                       join role in _context.Roles on userRole.RoleId equals role.Id
+                                       where role.Name != "Admin" //filtering 
+                                       select user).ToListAsync();
+
+            return nonAdminUsers;
+        }
+
+
         public async Task<bool> EmailExists(string email)
         {
             return await _context.Users.AnyAsync(u => u.Email == email);

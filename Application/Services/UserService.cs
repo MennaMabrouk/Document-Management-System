@@ -21,7 +21,7 @@ namespace Application.Services
 
         public async Task<ICollection<UserDto>> GetAllUsers()
         {
-           var users =  await _unitOfWork.User.GetAll();
+           var users =  await _unitOfWork.User.GetAllNonAdminUsers();
 
             if (!users.Any())
                 return new List<UserDto>();

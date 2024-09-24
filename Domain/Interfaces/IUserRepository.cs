@@ -9,6 +9,7 @@ namespace Domain.Interfaces
 {
     public interface IUserRepository : IGenericRepository<User>
     {
+        Task<ICollection<User>> GetAllNonAdminUsers();
         Task<User>GetUserByWorkspaceId(int workspaceId); 
         Task<bool> EmailExists(string email);
 
