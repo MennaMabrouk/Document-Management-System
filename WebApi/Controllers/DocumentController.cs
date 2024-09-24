@@ -35,17 +35,17 @@ namespace WebApi.Controllers
 
 
         [Authorize(Roles = "User,Admin")]
-        [HttpGet("Folder/{folderId}")]
+        [HttpGet("documents/{folderId}")]
         [ProducesResponseType(200, Type = typeof(ICollection<DocumentDto>))]
         [ProducesResponseType(204)]
-        public async Task<IActionResult> GetDocumentsByFolderId(int folderId)
+        public async Task<IActionResult> GetDocumentsByFolderId(int     folderId)
 
         {
             var userIdClaims = GetUserIdFromClaims();
             var roles = GetRoleFromClaims();
             var documents = await _documentService.GetDocumentsByFolderId(userIdClaims, folderId, roles);
             if (!documents.Any())
-                return NoContent();
+                return Ok(new List<DocumentDto>());
 
             return Ok(documents);
         }
@@ -97,7 +97,7 @@ namespace WebApi.Controllers
             var roles = GetRoleFromClaims();
             var documentBlob = await _documentService.GetDocumentBlobById(userIdClaims, documentId, roles);
             if (documentBlob == null)
-                return NotFound("Document not found!");
+                return NotFound(new { message = "Document not found!" });
 
             return File(documentBlob.Content, documentBlob.ContentType, documentBlob.FileName);
         }
@@ -113,10 +113,10 @@ namespace WebApi.Controllers
             var userIdClaims = GetUserIdFromClaims();
             var updateResult = await _documentService.UploadDocument(userIdClaims, documentCreateDto);
             if (!updateResult)
-                return BadRequest("Failed to update!");
+                return BadRequest(new { message = "Failed to update!" });
 
 
-            return StatusCode(201, "Document uploaded successfully.");
+            return StatusCode(201,new { messge = "Document uploaded successfully." } );
 
         }
 
@@ -131,7 +131,7 @@ namespace WebApi.Controllers
             var userIdClaims = GetUserIdFromClaims();
             var updateResult = await _documentService.UpdateDocument(userIdClaims, updatedDocument);
             if (!updateResult)
-                return BadRequest("Failed to update!");
+                return BadRequest(new { message = "Failed to update!" } );
 
 
             return NoContent();
@@ -148,7 +148,7 @@ namespace WebApi.Controllers
             var userIdClaims = GetUserIdFromClaims();
             var deletedResult = await _documentService.DeleteDocument(userIdClaims, documentId);
             if (!deletedResult)
-                return NotFound("Document not found or already deleted.");
+                return NotFound(new { message = "Document not found or already deleted." });
 
             return NoContent();
         }

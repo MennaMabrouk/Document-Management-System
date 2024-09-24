@@ -12,6 +12,8 @@ namespace Application.Dto.Document
     {
         [Required]
         public IFormFile File { get; set; }
+
+        [Required]
         public int FolderId { get; set; }
         public string? Name { get; set; }
 

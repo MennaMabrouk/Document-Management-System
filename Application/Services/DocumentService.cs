@@ -105,28 +105,30 @@ namespace Application.Services
 
             if (document.CreationDate != documentDto.CreationDate)
                 throw new InvalidOperationException("Creation date cannot be modified!");
-/*
-            if (document.Name != documentDto.Name)
-            {
 
-                var currentFilePath = _fileService.GetAbsolutePath(document.FilePath);
+            if (document.Type != documentDto.Type)
+                throw new InvalidOperationException("Type cannot be modified!");
+            
+                        if (document.Name != documentDto.Name)
+                        {
+                var currentFilePath = _fileService.GetAbsolutePath("Workspaces", document.Folder.Workspace.Name, document.Folder.Name, $"{document.Name}{document.Type}");
                 var newFilePath = _fileService.GetAbsolutePath("Workspaces", document.Folder.Workspace.Name, document.Folder.Name, $"{documentDto.Name}{document.Type}");
-                if (File.Exists(currentFilePath))
-                {
-                    var renameSuccess = await _fileService.RenameDocument(currentFilePath, newFilePath);
-                    if (!renameSuccess)
-                    {
-                        throw new InvalidOperationException("Failed to update the document name or type in the file system.");
-                    }
+                            if (File.Exists(currentFilePath))
+                            {
+                                var renameSuccess = await _fileService.RenameDocument(currentFilePath, newFilePath);
+                                if (!renameSuccess)
+                                {
+                                    throw new InvalidOperationException("Failed to update the document name or type in the file system.");
+                                }
 
-                    document.FilePath = _fileService.GetRelativePath(newFilePath);
-                }
-                else
-                {
-                    throw new FileNotFoundException("The file to be renamed does not exist at the specified path.", currentFilePath);
-                }
+                              /*  document.FilePath = _fileService.GetRelativePath(newFilePath);*/
+                            }
+                            else
+                            {
+                                throw new FileNotFoundException("The file to be renamed does not exist at the specified path.", currentFilePath);
+                            }
 
-            }*/
+                        }
 
             document.Name = documentDto.Name;
             document.Version = documentDto.Version;
@@ -188,9 +190,9 @@ namespace Application.Services
                 if (!success)
                     return false;
             }
-/*            var absolutePath = _fileService.GetAbsolutePath(folder.Workspace.Name, folder.Name, $"{fileName}{fileType}");
-            var relativeFilePath = _fileService.GetRelativePath(absolutePath);
-*/
+            /*            var absolutePath = _fileService.GetAbsolutePath(folder.Workspace.Name, folder.Name, $"{fileName}{fileType}");
+                        var relativeFilePath = _fileService.GetRelativePath(absolutePath);
+            */
             var documentDto = new DocumentDto
             {
                 Name = fileName,
@@ -199,7 +201,7 @@ namespace Application.Services
                 Tag = fileTag,
                 Version = fileVersion,
                 FolderId = documentCreateDto.FolderId,
-              /*  FilePath = relativeFilePath*/
+                /*  FilePath = relativeFilePath*/
 
             };
 
@@ -229,9 +231,9 @@ namespace Application.Services
             if (document == null)
                 throw new UnauthorizedAccessException("Document not found");
 
-/*            var relativeFilePath = document.FilePath;
-            var abosluteFilePath = _fileService.GetAbsolutePath(relativeFilePath);
-*/
+            /*            var relativeFilePath = document.FilePath;
+                        var abosluteFilePath = _fileService.GetAbsolutePath(relativeFilePath);
+            */
             var filePath = _fileService.GetAbsolutePath("Workspaces", document.Folder.Workspace.Name, document.Folder.Name, $"{document.Name}{document.Type}");
             var content = await _fileService.ReadDocumentAsBytes(filePath);
 
@@ -261,4 +263,4 @@ namespace Application.Services
         }
 
     }
-    }
+}

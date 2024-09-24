@@ -38,6 +38,11 @@ public class FileService : IFileService
     {
         string oldFolderPath = GetAbsolutePath("Workspaces",workspaceName, oldFolderName);
         string newFolderPath = GetAbsolutePath("Workspaces", workspaceName, newFolderName);
+        if (Directory.Exists(newFolderPath))
+        {
+            throw new IOException($"The destination folder already exists: {newFolderPath}");
+        }
+
         return await MoveDirectoryAsync(oldFolderPath, newFolderPath);
     }
 
@@ -56,15 +61,37 @@ public class FileService : IFileService
 
     private async Task<bool> MoveDirectoryAsync(string oldPath, string newPath)
     {
-        return await Task.Run(() =>
+        try
         {
-            if (Directory.Exists(oldPath))
+            return await Task.Run(() =>
             {
-                Directory.Move(oldPath, newPath);
-            }
-            return Directory.Exists(newPath);
-        });
+                if (Directory.Exists(oldPath))
+                {
+                    if (!Directory.Exists(newPath))
+                    {
+                        Directory.Move(oldPath, newPath);
+                    }
+                    else
+                    {
+                        throw new IOException($"The destination directory already exists: {newPath}");
+                    }
+                }
+                else
+                {
+                    throw new DirectoryNotFoundException($"The source directory does not exist: {oldPath}");
+                }
+
+                return Directory.Exists(newPath);
+            });
+        }
+        catch (Exception ex)
+        {
+            // Log the exception
+            Console.WriteLine($"Error moving directory: {ex.Message}");
+            return false;
+        }
     }
+
 
     public string ExtractFileName(IFormFile file, string documentName)
     {

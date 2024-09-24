@@ -19,12 +19,12 @@ namespace WebApi.Controllers
         }
 
         [Authorize(Roles = "User,Admin")]
-        [HttpGet("PublicFolders")]
+        [HttpGet("public-folders")]
         [ProducesResponseType(200, Type = typeof(ICollection<FolderDto>))]
         [ProducesResponseType(204)]
         public async Task<IActionResult> GetAllPublicFolders()
         {
-            var userIdClaims = GetUserIdFromClaims();
+          /*  var userIdClaims = GetUserIdFromClaims();*/
             var publicFolders = await _folderService.GetAllPublicFolders();
             if (!publicFolders.Any())
                 return NoContent();
@@ -32,11 +32,14 @@ namespace WebApi.Controllers
             return Ok(publicFolders);
         }
 
+
+
+
         [Authorize(Roles = "User,Admin")]
         [HttpGet("{folderId}")]
         [ProducesResponseType(200, Type = typeof(FolderDto))]
         public async Task<IActionResult> GetFolderById(int folderId)
-        {
+        {   
             var userIdClaims = GetUserIdFromClaims();
             var roles = GetRoleFromClaims();
             var folder = await _folderService.GetFolderById(userIdClaims, folderId, roles);
@@ -44,22 +47,7 @@ namespace WebApi.Controllers
             return Ok(folder);
         }
 
-        [Authorize(Roles = "User,Admin")]
-        [HttpGet("Workspace/{workspaceId}")]
-        [ProducesResponseType(200, Type = typeof(ICollection<FolderDto>))]
-        [ProducesResponseType(204)]
-        public async Task<IActionResult> GetAllFoldersByWorkspaceId(int workspaceId)
-        {
 
-            var userIdClaims = GetUserIdFromClaims();
-            var roles = GetRoleFromClaims();
-            var Folders = await _folderService.GetAllFoldersByWorkspaceId(userIdClaims, workspaceId, roles);
-            if (!Folders.Any())
-                return NoContent();
-
-
-            return Ok(Folders);
-        }
 
         [Authorize(Roles = "User,Admin")]
         [HttpGet("workspace/{userId}/folders")]
@@ -70,7 +58,9 @@ namespace WebApi.Controllers
 
             var userIdClaims = GetUserIdFromClaims();
             var roles = GetRoleFromClaims();
-            var Folders = await _folderService.GetAllFoldersByWorkspaceId(userIdClaims, userId, roles);
+
+
+            var Folders = await _folderService.GetAllFoldersByUserId(userIdClaims, userId, roles);
             if (!Folders.Any())
                 return NoContent();
 
@@ -89,7 +79,7 @@ namespace WebApi.Controllers
             var userIdClaims = GetUserIdFromClaims();
             var createResult = await _folderService.CreateFolder(userIdClaims, createdFolder);
             if (!createResult)
-                return BadRequest("Failed to create the folder.");
+                return BadRequest(new { message = "Failed to create the folder." });
 
             return CreatedAtAction(nameof(GetFolderById), new { folderId = createdFolder.FolderId }, createdFolder);
         }
@@ -105,7 +95,7 @@ namespace WebApi.Controllers
             var userIdClaims = GetUserIdFromClaims();
             var updateResult = await _folderService.UpdateFolder(userIdClaims, folderDto);
             if (!updateResult)
-                return BadRequest("Failed to update the folder.");
+                return BadRequest(new { message = "Failed to update the folder." } );
 
             return NoContent();
         }
@@ -120,10 +110,29 @@ namespace WebApi.Controllers
             var userIdClaims = GetUserIdFromClaims();
             var deletedResult = await _folderService.DeleteFolder(userIdClaims, folderId);
             if (!deletedResult)
-                return BadRequest("Failed to delete the folder.");
+                return BadRequest(new { message = "Failed to delete the folder." } );
 
             return NoContent();
         }
+
+
+/*
+        [Authorize(Roles = "User,Admin")]
+        [HttpGet("Workspace/{workspaceId}")]
+        [ProducesResponseType(200, Type = typeof(ICollection<FolderDto>))]
+        [ProducesResponseType(204)]
+        public async Task<IActionResult> GetAllFoldersByWorkspaceId(int workspaceId)
+        {
+
+            var userIdClaims = GetUserIdFromClaims();
+            var roles = GetRoleFromClaims();
+            var Folders = await _folderService.GetAllFoldersByWorkspaceId(userIdClaims, workspaceId, roles);
+            if (!Folders.Any())
+                return NoContent();
+
+
+            return Ok(Folders);
+        }*/
 
         /* [HttpPatch("Restore/Workspace/{workspaceId}")]
          [ProducesResponseType(204)]

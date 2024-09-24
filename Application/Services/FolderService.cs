@@ -177,15 +177,22 @@ namespace Application.Services
                 throw new InvalidOperationException("Creation date cannot be modified.");
 
 
-            var updatedPath = await _fileService.UpdateFolderPath(folder.Workspace.Name, folder.Name, folderDto.Name);
-            if (!updatedPath)
+            if (folder.Name != folderDto.Name)
             {
-                await _fileService.UpdateFolderPath(folder.Workspace.Name, folderDto.Name, folder.Name);
-                return false;
+                try
+                {
+                    var updatedPath = await _fileService.UpdateFolderPath(folder.Workspace.Name, folder.Name, folderDto.Name);
+                    folder.Name = folderDto.Name;
+
+                }
+                catch (IOException ex)
+                {
+                    Console.WriteLine($"Error updating folder: {ex.Message}");
+                    return false; 
+                }
+
             }
 
-
-            folder.Name = folderDto.Name;
             folder.IsPublic = folderDto.IsPublic;
             _unitOfWork.Folder.Update(folder);
 

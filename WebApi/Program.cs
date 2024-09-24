@@ -21,7 +21,10 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.AddTransient<Seed>();
 builder.Services.AddControllers().AddJsonOptions(x =>
-x.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles);
+{
+    x.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+    x.JsonSerializerOptions.PropertyNamingPolicy = null;
+});
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<IFileService, FileService>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
@@ -146,9 +149,9 @@ if (app.Environment.IsDevelopment())
 app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
 
 app.UseHttpsRedirection();
+app.UseCors("AllowClientConnecction");
 app.UseAuthentication();
 app.UseAuthorization();
-app.UseCors("AllowClientConnecction");
 
 app.MapControllers();
 app.Run();

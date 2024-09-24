@@ -53,7 +53,7 @@ namespace WebApi.Controllers
                     Nid = registerdto.Nid,
                     Gender = registerdto.Gender,
                     PhoneNumber = registerdto.PhoneNumber,
-                  /*  YearOfBirth = registerdto.YearOfBirth,*/
+                    /*  YearOfBirth = registerdto.YearOfBirth,*/
 
                     Workspace = new Workspace
                     {
@@ -69,16 +69,17 @@ namespace WebApi.Controllers
 
                 if (result.Succeeded)
                 {
+                    var roleResult = await _usermanager.AddToRoleAsync(user, "User");
 
                     bool folderCreated = await _userService.CreateWorkspacePathForUser(registerdto.WorkspaceName);
 
                     if (folderCreated)
                     {
-                        return Ok("Account added successfully");
+                        return Ok(new { message = "Account added successfully" });
                     }
                     else
                     {
-                        return StatusCode(500, "Account created, but failed to create workspace directory.");
+                        return StatusCode(500, new { message = "Account created, but failed to create workspace directory." });
                     }
                 }
 
@@ -149,7 +150,7 @@ namespace WebApi.Controllers
                         {
                             token = new JwtSecurityTokenHandler().WriteToken(mytoken),
                             expiration = mytoken.ValidTo,
-                            role = roles.FirstOrDefault()
+                            role = roles.FirstOrDefault(),
                         });
 
                     }
@@ -166,31 +167,57 @@ namespace WebApi.Controllers
 
         }
 
-
-
-/*        [Authorize(Roles = "User,Admin")]
-        [HttpGet("get-user-info")]
-        [ProducesResponseType(204)]
-        [ProducesResponseType(400)]
-        [ProducesResponseType(404)]
-        public async Task<IActionResult> GetLoggedUserInfo()
+        [Authorize(Roles = "User,Admin")]
+        [HttpGet("details")]
+        public async Task<IActionResult> GetUserId()
         {
-            var userIdClaims = GetUserIdFromClaims();
-            var roleClaims = GetRoleFromClaims();
-            var userDetails = await _userService.GetUserById(userIdClaims, userIdClaims, roleClaims);
+            var userId = GetUserIdFromClaims();
+            var user = await _usermanager.FindByIdAsync(userId.ToString());
 
-            if (userDetails == null)
+            if (user == null)
             {
-                return NotFound("User not found.");
+                return NotFound(new { message = "User not found." });
             }
+
+
+            var roles = GetRoleFromClaims();
 
             return Ok(new
             {
-                User = userDetails,
-                Role = roleClaims
-            });
+                userId = user.Id,
 
-        }*/
+            });
+        }
+
+
+
+
+
+
+
+        /*        [Authorize(Roles = "User,Admin")]
+                [HttpGet("get-user-info")]
+                [ProducesResponseType(204)]
+                [ProducesResponseType(400)]
+                [ProducesResponseType(404)]
+                public async Task<IActionResult> GetLoggedUserInfo()
+                {
+                    var userIdClaims = GetUserIdFromClaims();
+                    var roleClaims = GetRoleFromClaims();
+                    var userDetails = await _userService.GetUserById(userIdClaims, userIdClaims, roleClaims);
+
+                    if (userDetails == null)
+                    {
+                        return NotFound("User not found.");
+                    }
+
+                    return Ok(new
+                    {
+                        User = userDetails,
+                        Role = roleClaims
+                    });
+
+                }*/
 
 
 
@@ -206,7 +233,7 @@ namespace WebApi.Controllers
             {
                 return NotFound("User not found");
             }
-            if(!lockTime.HasValue)
+            if (!lockTime.HasValue)
             {
                 user.LockoutEnd = DateTimeOffset.UtcNow.AddHours(1);
             }
@@ -216,10 +243,10 @@ namespace WebApi.Controllers
             var result = await _usermanager.UpdateAsync(user);
             if (result.Succeeded)
             {
-                return Ok("User locked successfully.");
+                return Ok(new { message = "User locked successfully." });
             }
 
-            return BadRequest("Failed to lock the user.");
+            return BadRequest(new { message = "Failed to lock the user." });
         }
 
         [Authorize(Roles = "Admin")]
@@ -232,7 +259,7 @@ namespace WebApi.Controllers
             var user = await _usermanager.FindByIdAsync(userId.ToString());
             if (user == null)
             {
-                return NotFound("User not found");
+                return NotFound(new { message = "User not found" });
             }
 
             // Remove the lockout
@@ -241,10 +268,10 @@ namespace WebApi.Controllers
             var result = await _usermanager.UpdateAsync(user);
             if (result.Succeeded)
             {
-                return Ok("User unlocked successfully.");
+                return Ok(new { message = "User unlocked successfully." });
             }
 
-            return BadRequest("Failed to unlock the user.");
+            return BadRequest(new { message = "Failed to unlock the user." });
         }
 
 
@@ -286,9 +313,9 @@ namespace WebApi.Controllers
             var userIdClaims = GetUserIdFromClaims();
             var updateResult = await _userService.UpdateUser(userIdClaims, updatedUser);
             if (!updateResult)
-                return BadRequest("Failed to update!");
+                return BadRequest(new { message = "Failed to update!" });
 
-            
+
             return NoContent();
         }
 
