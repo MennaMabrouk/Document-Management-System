@@ -106,10 +106,24 @@ namespace WebApi.Controllers
 
                 if (user != null)
                 {
+   
+                    if (user.LockoutEnd != null && user.LockoutEnd > DateTimeOffset.UtcNow)
+                    {
+                        return StatusCode(403, new { message = $"This account is locked until {user.LockoutEnd.Value.ToLocalTime():MM/dd/yyyy hh:mm tt}" });
+                    }
+
+
                     bool found = await _usermanager.CheckPasswordAsync(user, logindto.Password);
 
                     if (found)
                     {
+                        if (user.LockoutEnd != null && user.LockoutEnd <= DateTimeOffset.UtcNow)
+                        {
+                            user.LockoutEnd = null;
+                            user.LockoutEnabled = false;
+                            await _usermanager.UpdateAsync(user);
+                        }
+
                         //Claims
                         var claims = new List<Claim>();
                         claims.Add(new Claim(ClaimTypes.Email, user.Email));
@@ -226,18 +240,30 @@ namespace WebApi.Controllers
         [ProducesResponseType(204)]
         [ProducesResponseType(400)]
         [ProducesResponseType(404)]
-        public async Task<IActionResult> LockUser(int userId, int? lockTime)
+        public async Task<IActionResult> LockUser(int userId, int lockTime, string timeUnit = "hours")
         {
             var user = await _usermanager.FindByIdAsync(userId.ToString());
             if (user == null)
             {
                 return NotFound("User not found");
             }
-            if (!lockTime.HasValue)
+
+            DateTimeOffset lockoutEnd;
+
+            switch (timeUnit.ToLower())
             {
-                user.LockoutEnd = DateTimeOffset.UtcNow.AddHours(1);
+                case "minutes":
+                    lockoutEnd = DateTimeOffset.UtcNow.AddMinutes(lockTime);
+                    break;
+                case "days":
+                    lockoutEnd = DateTimeOffset.UtcNow.AddDays(lockTime);
+                    break;
+                default:
+                    lockoutEnd = DateTimeOffset.UtcNow.AddHours(lockTime);
+                    break;
             }
-            user.LockoutEnd = DateTimeOffset.UtcNow.AddHours((double)lockTime);
+
+            user.LockoutEnd = lockoutEnd;
             user.LockoutEnabled = true;
 
             var result = await _usermanager.UpdateAsync(user);
@@ -264,8 +290,10 @@ namespace WebApi.Controllers
 
             // Remove the lockout
             user.LockoutEnd = null;
+            user.LockoutEnabled = false;
 
             var result = await _usermanager.UpdateAsync(user);
+
             if (result.Succeeded)
             {
                 return Ok(new { message = "User unlocked successfully." });
