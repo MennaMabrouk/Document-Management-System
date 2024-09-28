@@ -1,5 +1,6 @@
 ﻿using Application.Dto.User;
 using Application.Interfaces;
+using Azure.Core;
 using Domain.Interfaces;
 using Domain.Models;
 using Infrastructure.Data;
@@ -106,8 +107,8 @@ namespace WebApi.Controllers
 
                 if (user != null)
                 {
-   
-                    if (user.LockoutEnd != null && user.LockoutEnd > DateTimeOffset.UtcNow)
+
+                    if (await _usermanager.IsLockedOutAsync(user))
                     {
                         return StatusCode(403, new { message = $"This account is locked until {user.LockoutEnd.Value.ToLocalTime():MM/dd/yyyy hh:mm tt}" });
                     }
@@ -117,12 +118,6 @@ namespace WebApi.Controllers
 
                     if (found)
                     {
-                        if (user.LockoutEnd != null && user.LockoutEnd <= DateTimeOffset.UtcNow)
-                        {
-                            user.LockoutEnd = null;
-                            user.LockoutEnabled = false;
-                            await _usermanager.UpdateAsync(user);
-                        }
 
                         //Claims
                         var claims = new List<Claim>();
@@ -206,41 +201,12 @@ namespace WebApi.Controllers
 
 
 
-
-
-
-        /*        [Authorize(Roles = "User,Admin")]
-                [HttpGet("get-user-info")]
-                [ProducesResponseType(204)]
-                [ProducesResponseType(400)]
-                [ProducesResponseType(404)]
-                public async Task<IActionResult> GetLoggedUserInfo()
-                {
-                    var userIdClaims = GetUserIdFromClaims();
-                    var roleClaims = GetRoleFromClaims();
-                    var userDetails = await _userService.GetUserById(userIdClaims, userIdClaims, roleClaims);
-
-                    if (userDetails == null)
-                    {
-                        return NotFound("User not found.");
-                    }
-
-                    return Ok(new
-                    {
-                        User = userDetails,
-                        Role = roleClaims
-                    });
-
-                }*/
-
-
-
         [Authorize(Roles = "Admin")]
         [HttpPost("lock/{userId}")]
         [ProducesResponseType(204)]
         [ProducesResponseType(400)]
         [ProducesResponseType(404)]
-        public async Task<IActionResult> LockUser(int userId, int lockTime, string timeUnit = "hours")
+        public async Task<IActionResult> LockUser(int userId, [FromBody] LockUserDto lockRequest)
         {
             var user = await _usermanager.FindByIdAsync(userId.ToString());
             if (user == null)
@@ -250,16 +216,19 @@ namespace WebApi.Controllers
 
             DateTimeOffset lockoutEnd;
 
-            switch (timeUnit.ToLower())
+            switch (lockRequest.TimeUnit.ToLower())
             {
+                case "hours":
+                    lockoutEnd = DateTimeOffset.UtcNow.AddHours(lockRequest.LockTime);
+                    break;
                 case "minutes":
-                    lockoutEnd = DateTimeOffset.UtcNow.AddMinutes(lockTime);
+                    lockoutEnd = DateTimeOffset.UtcNow.AddMinutes(lockRequest.LockTime);
                     break;
                 case "days":
-                    lockoutEnd = DateTimeOffset.UtcNow.AddDays(lockTime);
+                    lockoutEnd = DateTimeOffset.UtcNow.AddDays(lockRequest.LockTime);
                     break;
                 default:
-                    lockoutEnd = DateTimeOffset.UtcNow.AddHours(lockTime);
+                    lockoutEnd = DateTimeOffset.UtcNow.AddHours(1);
                     break;
             }
 
@@ -280,12 +249,19 @@ namespace WebApi.Controllers
         [ProducesResponseType(204)]
         [ProducesResponseType(400)]
         [ProducesResponseType(404)]
+        [ProducesResponseType(409)]  // 409 Conflict when the user is not locked
         public async Task<IActionResult> UnlockUser(int userId)
         {
             var user = await _usermanager.FindByIdAsync(userId.ToString());
             if (user == null)
             {
                 return NotFound(new { message = "User not found" });
+            }
+
+            // Check if the user is locked
+            if (user.LockoutEnd == null || user.LockoutEnd <= DateTimeOffset.UtcNow)
+            {
+                return Conflict(new { message = "User is not currently locked." });
             }
 
             // Remove the lockout
@@ -329,7 +305,7 @@ namespace WebApi.Controllers
 
         }
 
-
+/*
         [Authorize(Roles = "User")]
         [HttpPut]
         [ProducesResponseType(204)]
@@ -346,6 +322,35 @@ namespace WebApi.Controllers
 
             return NoContent();
         }
+
+*/
+
+
+
+
+        /*        [Authorize(Roles = "User,Admin")]
+                [HttpGet("get-user-info")]
+                [ProducesResponseType(204)]
+                [ProducesResponseType(400)]
+                [ProducesResponseType(404)]
+                public async Task<IActionResult> GetLoggedUserInfo()
+                {
+                    var userIdClaims = GetUserIdFromClaims();
+                    var roleClaims = GetRoleFromClaims();
+                    var userDetails = await _userService.GetUserById(userIdClaims, userIdClaims, roleClaims);
+
+                    if (userDetails == null)
+                    {
+                        return NotFound("User not found.");
+                    }
+
+                    return Ok(new
+                    {
+                        User = userDetails,
+                        Role = roleClaims
+                    });
+
+                }*/
 
 
 
