@@ -1,6 +1,8 @@
-﻿using Application.Dto.User;
+﻿using Application.Dto;
+using Application.Dto.User;
 using Application.Interfaces;
 using Azure.Core;
+using Domain.Enums;
 using Domain.Interfaces;
 using Domain.Models;
 using Infrastructure.Data;
@@ -281,16 +283,18 @@ namespace WebApi.Controllers
 
         [Authorize(Roles = "Admin")]
         [HttpGet]
-        [ProducesResponseType(200, Type = typeof(ICollection<UserDto>))]
+        [ProducesResponseType(200, Type = typeof(PaginatedResult<UserDto>))]
         [ProducesResponseType(204)]
-        public async Task<IActionResult> GetAllUsers()
+        public async Task<IActionResult> GetAllUsers([FromQuery] int pageNumber = (int)PaginationEnum.PageNumber, 
+                                                    [FromQuery] int pageSize = (int)PaginationEnum.PageSize)
         {
-            var users = await _userService.GetAllUsers();
-            if (!users.Any())
+            var paginatedUsers = await _userService.GetPaginatedUsers(pageNumber, pageSize);
+            if (!paginatedUsers.Items.Any())
                 return NoContent();
 
-            return Ok(users);
+            return Ok(paginatedUsers);
         }
+
 
         [Authorize(Roles = "User,Admin")]
         [HttpGet("{userId}")]

@@ -1,6 +1,8 @@
-﻿using Application.Dto.Document;
+﻿using Application.Dto;
+using Application.Dto.Document;
 using Application.Interfaces;
 using Application.Services;
+using Domain.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -36,18 +38,21 @@ namespace WebApi.Controllers
 
         [Authorize(Roles = "User,Admin")]
         [HttpGet("documents/{folderId}")]
-        [ProducesResponseType(200, Type = typeof(ICollection<DocumentDto>))]
+        [ProducesResponseType(200, Type = typeof(PaginatedResult<DocumentDto>))]
         [ProducesResponseType(204)]
-        public async Task<IActionResult> GetDocumentsByFolderId(int     folderId)
+        public async Task<IActionResult> GetDocumentsByFolderId(int folderId, 
+                                                [FromQuery] int pageNumber = (int)PaginationEnum.PageNumber,
+                                                    [FromQuery] int pageSize = (int)PaginationEnum.PageSize)
 
         {
             var userIdClaims = GetUserIdFromClaims();
             var roles = GetRoleFromClaims();
-            var documents = await _documentService.GetDocumentsByFolderId(userIdClaims, folderId, roles);
-            if (!documents.Any())
+
+            var paginatedDocuments = await _documentService.GetPaginatedDocumentsByFolderId(userIdClaims, folderId, roles, pageNumber,pageSize);
+            if (!paginatedDocuments.Items.Any())
                 return Ok(new List<DocumentDto>());
 
-            return Ok(documents);
+            return Ok(paginatedDocuments);
         }
 
 

@@ -1,4 +1,5 @@
 ﻿using Application.Dto;
+using Application.Dto.User;
 using Domain.Models;
 using System;
 using System.Collections.Generic;
@@ -19,8 +20,11 @@ namespace Application.Interfaces
 
 
         Task<ICollection<FolderDto>> GetAllFoldersByWorkspaceId(int userClaims, int workspaceId, string roleClaims);
-        Task<ICollection<FolderDto>> GetAllFoldersByUserId(int userClaims, int userId, string roleClaims);
+        Task<PaginatedResult<FolderDto>> GetPaginatedFoldersByUserId(int userClaims, int userId, string roleClaims,int pageNumber , int pageSize);
         Task<ICollection<FolderDto>> GetAllPublicFolders();
+
+        Task<PaginatedResult<FolderDto>> GetAllPagintedPublicFolders(int pageNumber, int pageSize);
+
         Task<bool> RestoreAllSoftDeletedFoldersByWorkspaceId(int workspaceId);
 
         Task<bool> RestoreSoftDeletedFolderById(int folderId);

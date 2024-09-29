@@ -1,4 +1,5 @@
 ﻿using Application.Dto;
+using Application.Dto.User;
 using Application.Interfaces;
 using AutoMapper;
 using Domain.Interfaces;
@@ -82,7 +83,7 @@ namespace Application.Services
         }
 
 
-        public async Task<ICollection<FolderDto>> GetAllFoldersByUserId(int userClaims, int userId, string roleClaims)
+        public async Task<PaginatedResult<FolderDto>> GetPaginatedFoldersByUserId(int userClaims, int userId, string roleClaims, int pageNumber, int pageSize)
         {
             if (userId <= 0)
                 throw new ArgumentException("Invalid user ID", nameof(userId));
@@ -94,11 +95,26 @@ namespace Application.Services
             if (userClaims != userId && roleClaims == "User")
                 throw new UnauthorizedAccessException("You are not authorized to access this folder's information.");
 
-            var folders = await _unitOfWork.Folder.GetAllFoldersByUserId(userId);
-            if (!folders.Any())
-                return new List<FolderDto>();
+            var allfolders = await _unitOfWork.Folder.GetAllFoldersByUserId(userId);
+            if (!allfolders.Any())
+            {
+                return new PaginatedResult<FolderDto>
+                {
+                    Items = new List<FolderDto>(),
+                };
+            }
 
-            return _mapper.Map<ICollection<FolderDto>>(folders);
+            var paginatedFolders = allfolders
+                  .Skip((pageNumber - 1) * pageSize)
+                  .Take(pageSize)
+                  .ToList();
+
+            var folderDtos = _mapper.Map<ICollection<FolderDto>>(paginatedFolders);
+
+            return new PaginatedResult<FolderDto>
+            {
+                Items = folderDtos
+            };
         }
 
 
@@ -228,6 +244,22 @@ namespace Application.Services
             return await _unitOfWork.Folder.EntityExists(name);
         }
 
+            public async Task<PaginatedResult<FolderDto>> GetAllPagintedPublicFolders(int pageNumber, int pageSize)
+            {
+                var allPublic = await _unitOfWork.Folder.GetAllPublicFolders();
 
+
+                var paginatedFolders = allPublic
+                      .Skip((pageNumber - 1) * pageSize)
+                      .Take(pageSize)
+                      .ToList();
+
+                var folderDtos = _mapper.Map<ICollection<FolderDto>>(paginatedFolders);
+
+                return new PaginatedResult<FolderDto>
+                {
+                    Items = folderDtos
+                };
+            }
     }
 }

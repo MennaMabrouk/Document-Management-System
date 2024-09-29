@@ -1,4 +1,5 @@
-﻿using Application.Dto.User;
+﻿using Application.Dto;
+using Application.Dto.User;
 using Application.Interfaces;
 using AutoMapper;
 using Domain.Interfaces;
@@ -103,8 +104,22 @@ namespace Application.Services
             return null;
         }
 
+        public async Task<PaginatedResult<UserDto>> GetPaginatedUsers(int pageNumber, int pageSize)
+        {
+            var allUsers = await _unitOfWork.User.GetAllNonAdminUsers();
 
 
+            var paginatedUsers = allUsers
+                  .Skip((pageNumber - 1) * pageSize)
+                  .Take(pageSize)
+                  .ToList();
 
+            var userDtos = _mapper.Map<ICollection<UserDto>>(paginatedUsers);
+
+            return new PaginatedResult<UserDto>
+            {
+                Items = userDtos
+            };
+        }
     }
 }

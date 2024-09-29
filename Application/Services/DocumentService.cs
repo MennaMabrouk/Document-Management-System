@@ -1,4 +1,5 @@
-﻿using Application.Dto.Document;
+﻿using Application.Dto;
+using Application.Dto.Document;
 using Application.Interfaces;
 using AutoMapper;
 using Domain.Enums;
@@ -45,7 +46,7 @@ namespace Application.Services
             return _mapper.Map<DocumentDto>(document);
         }
 
-        public async Task<ICollection<DocumentDto>> GetDocumentsByFolderId(int userClaims, int folderId, string roleClaims)
+        public async Task<PaginatedResult<DocumentDto>> GetPaginatedDocumentsByFolderId(int userClaims, int folderId, string roleClaims, int pageNumber, int pageSize)
         {
             if (folderId <= 0)
                 throw new ArgumentException("Invalid folder ID", nameof(folderId));
@@ -59,11 +60,28 @@ namespace Application.Services
                 throw new ArgumentException("Invalid role claim.");
             }
 
-            var documents = await _unitOfWork.Document.GetDocumentsByFolderId(userClaims, folderId, role);
-            if (!documents.Any())
-                return new List<DocumentDto>();
+            var alldocuments = await _unitOfWork.Document.GetDocumentsByFolderId(userClaims, folderId, role);
+            if (!alldocuments.Any())
+            {
+                return new PaginatedResult<DocumentDto>
+                {
+                    Items = new List<DocumentDto>(),
+                };
 
-            return _mapper.Map<ICollection<DocumentDto>>(documents);
+            }
+
+            var paginatedDocuments = alldocuments
+                  .Skip((pageNumber - 1) * pageSize)
+                  .Take(pageSize)
+                   .ToList();
+
+            var documentDtos = _mapper.Map<ICollection<DocumentDto>>(paginatedDocuments);
+
+            return new PaginatedResult<DocumentDto>
+            {
+                Items = documentDtos
+            };
+
         }
 
 
@@ -108,27 +126,27 @@ namespace Application.Services
 
             if (document.Type != documentDto.Type)
                 throw new InvalidOperationException("Type cannot be modified!");
-            
-                        if (document.Name != documentDto.Name)
-                        {
+
+            if (document.Name != documentDto.Name)
+            {
                 var currentFilePath = _fileService.GetAbsolutePath("Workspaces", document.Folder.Workspace.Name, document.Folder.Name, $"{document.Name}{document.Type}");
                 var newFilePath = _fileService.GetAbsolutePath("Workspaces", document.Folder.Workspace.Name, document.Folder.Name, $"{documentDto.Name}{document.Type}");
-                            if (File.Exists(currentFilePath))
-                            {
-                                var renameSuccess = await _fileService.RenameDocument(currentFilePath, newFilePath);
-                                if (!renameSuccess)
-                                {
-                                    throw new InvalidOperationException("Failed to update the document name or type in the file system.");
-                                }
+                if (File.Exists(currentFilePath))
+                {
+                    var renameSuccess = await _fileService.RenameDocument(currentFilePath, newFilePath);
+                    if (!renameSuccess)
+                    {
+                        throw new InvalidOperationException("Failed to update the document name or type in the file system.");
+                    }
 
-                              /*  document.FilePath = _fileService.GetRelativePath(newFilePath);*/
-                            }
-                            else
-                            {
-                                throw new FileNotFoundException("The file to be renamed does not exist at the specified path.", currentFilePath);
-                            }
+                    /*  document.FilePath = _fileService.GetRelativePath(newFilePath);*/
+                }
+                else
+                {
+                    throw new FileNotFoundException("The file to be renamed does not exist at the specified path.", currentFilePath);
+                }
 
-                        }
+            }
 
             document.Name = documentDto.Name;
             document.Version = documentDto.Version;

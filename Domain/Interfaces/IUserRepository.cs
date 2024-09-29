@@ -13,5 +13,6 @@ namespace Domain.Interfaces
         Task<User>GetUserByWorkspaceId(int workspaceId); 
         Task<bool> EmailExists(string email);
 
+
     }
 }

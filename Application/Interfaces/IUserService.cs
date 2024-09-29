@@ -1,4 +1,5 @@
-﻿using Application.Dto.User;
+﻿using Application.Dto;
+using Application.Dto.User;
 using Microsoft.AspNetCore.Identity;
 using System;
 using System.Collections.Generic;
@@ -15,6 +16,9 @@ namespace Application.Interfaces
         Task<bool> UpdateUser(int userClaims, UserDto userDto);
         Task<UserDto> GetUserByWorkspaceId(int workspaceId);
         Task<bool> CreateWorkspacePathForUser(string workspaceName);
+
+        Task<PaginatedResult<UserDto>> GetPaginatedUsers(int pageNumber, int pageSize);
+
 
     }
 

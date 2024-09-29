@@ -1,6 +1,7 @@
 ﻿using Application.Dto;
 using Application.Interfaces;
 using Application.Services;
+using Domain.Enums;
 using Domain.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -20,16 +21,17 @@ namespace WebApi.Controllers
 
         [Authorize(Roles = "User,Admin")]
         [HttpGet("public-folders")]
-        [ProducesResponseType(200, Type = typeof(ICollection<FolderDto>))]
+        [ProducesResponseType(200, Type = typeof(PaginatedResult<FolderDto>))]
         [ProducesResponseType(204)]
-        public async Task<IActionResult> GetAllPublicFolders()
+        public async Task<IActionResult> GetAllPublicFolders([FromQuery] int pageNumber = (int)PaginationEnum.PageNumber,
+                                                         [FromQuery] int pageSize = (int)PaginationEnum.PageSize)
         {
           /*  var userIdClaims = GetUserIdFromClaims();*/
-            var publicFolders = await _folderService.GetAllPublicFolders();
-            if (!publicFolders.Any())
+            var paginatedFolders = await _folderService.GetAllPagintedPublicFolders(pageNumber,pageSize);
+            if (!paginatedFolders.Items.Any())
                 return NoContent();
 
-            return Ok(publicFolders);
+            return Ok(paginatedFolders);
         }
 
 
@@ -51,21 +53,22 @@ namespace WebApi.Controllers
 
         [Authorize(Roles = "User,Admin")]
         [HttpGet("workspace/{userId}/folders")]
-        [ProducesResponseType(200, Type = typeof(ICollection<FolderDto>))]
+        [ProducesResponseType(200, Type = typeof(PaginatedResult<FolderDto>))]
         [ProducesResponseType(204)]
-        public async Task<IActionResult> GetAllFoldersByUserId(int userId)
+        public async Task<IActionResult> GetAllFoldersByUserId(int userId ,[FromQuery] int pageNumber = (int)PaginationEnum.PageNumber,
+                                                    [FromQuery] int pageSize = (int)PaginationEnum.PageSize)
         {
 
             var userIdClaims = GetUserIdFromClaims();
             var roles = GetRoleFromClaims();
 
 
-            var Folders = await _folderService.GetAllFoldersByUserId(userIdClaims, userId, roles);
-            if (!Folders.Any())
+            var paginatedFolders = await _folderService.GetPaginatedFoldersByUserId(userIdClaims, userId, roles, pageNumber , pageSize);
+            if (!paginatedFolders.Items.Any())
                 return NoContent();
 
 
-            return Ok(Folders);
+            return Ok(paginatedFolders);
         }
 
         [Authorize(Roles = "User")]

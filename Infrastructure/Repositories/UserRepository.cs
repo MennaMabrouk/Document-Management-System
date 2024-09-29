@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace Infrastructure.Repositories
 {
-    public class UserRepository : GenericRepository<User> ,IUserRepository
+    public class UserRepository : GenericRepository<User>, IUserRepository
     {
         public UserRepository(DataContext context) : base(context)
         {
@@ -36,8 +36,8 @@ namespace Infrastructure.Repositories
 
         public async Task<User> GetUserByWorkspaceId(int workspaceId)
         {
-          return await _context.Workspaces.Where(w => w.WorkspaceId == workspaceId).Select(u => u.User).FirstOrDefaultAsync();
-          
+            return await _context.Workspaces.Where(w => w.WorkspaceId == workspaceId).Select(u => u.User).FirstOrDefaultAsync();
+
         }
     }
 }
